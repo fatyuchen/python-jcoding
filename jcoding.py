@@ -28,98 +28,7 @@ __ChardetMapping__ = {
              }
 __ChardetException__ = ('ISO-8859-7','ISO-8859-5','windows-1252')
 __ChardetThreshold__ = 0.99 #信任chardet字符编码判断的阀值
-def version():
-    u'''
-    :取得版本号，返回值类型为字符串。
-    '''
-    global __version__
-    return __version__
-def getChardetThreshold():
-    u'''
-    :得到当前chardet字符串字符编码探测的信任阀值
-    '''
-    global __ChardetThreshold__
-    return __ChardetThreshold__
-def setChardetThreshold(chardetthreshold = 0.99):
-    u'''
-    :设置chardet字符串字符编码探测的信任阀值,缺省值：0.99
-    '''
-    if chardetthreshold is None or chardetthreshold < 0:
-        chardetthreshold = 0.99
-    global __ChardetThreshold__
-    __ChardetThreshold__ = chardetthreshold
-def setPriorityDecoding(*args):
-    u'''
-    :设置优先解码的字符编码编码
-    :缺省值为：'utf8','gb2312','gbk','big5'
-    '''
-    if len(args) == 0:
-        args = ('utf8','gb2312','gbk','big5')
-    global __PriorityCoding__
-    __PriorityCoding__ = args
-def addPriorityDecoding(*args):
-    u'''
-    :添加优先解码的字符编码编码
-    '''
-    global __PriorityCoding__
-    __PriorityCoding__ += args
-def getPriorityDecoding():
-    u'''
-    :得到当前优先解码的字符编码编码
-    '''
-    global __PriorityCoding__
-    return __PriorityCoding__
-def setChardetMapping(mappingdict = None):
-    u'''
-    :设置chardet探测到的字符编码与python字符编码的映射关系
-    :缺省值为：{'UTF-16LE':'utf16','UTF-16BE':'utf16','UTF-32LE':'utf32'}
-    '''
-    if mappingdict is None or not isinstance(mappingdict,dict):
-        mappingdict = {
-             'UTF-16LE':'utf16',
-             'UTF-16BE':'utf16',
-             'UTF-32LE':'utf32',
-             }
-    global __ChardetMapping__
-    __ChardetMapping__ = mappingdict
-def addChardetMapping(mappingdict = None):
-    u'''
-    :添加chardet探测到的字符编码与python字符编码的映射关系
-    :参数：
-    :    mappingdict:数据类型为dict
-    '''
-    if mappingdict is None or not isinstance(mappingdict,dict):
-        return
-    global __ChardetMapping__
-    for k in mappingdict:
-        __ChardetMapping__[k] = mappingdict[k]
-def getChardetMapping():
-    u'''
-    :得到当前chardet探测到的字符编码与python字符编码的映射关系
-    '''
-    global __ChardetMapping__
-    return __ChardetMapping__
-def setChardetException(*args):
-    u'''
-    :设置chardet探测字符编码的不信任元组
-    :缺省值为：'ISO-8859-7','ISO-8859-5','windows-1252'
-    '''
-    if len(args) == 0:
-        args = ('ISO-8859-7','ISO-8859-5','windows-1252')
-    global __ChardetException__
-    __ChardetException__ = args
-def addChardetException(*args):
-    u'''
-    :添加chardet探测字符编码的不信任元组
-    '''
-    global __ChardetException__ 
-    __ChardetException__ += args
-def getChardetException():
-    u'''
-    :得到chardet探测字符编码的不信任元组
-    '''
-    global __ChardetException__
-    return __ChardetException__
+
 def __isCoding(coding,s):
     u'''
     :判断是否可以按指定coding解码
@@ -166,23 +75,23 @@ def __toUnicode(s):
     global __ChardetThreshold__ , __PriorityCoding__
     if isinstance(s,dict):
         rtn = {}
-        for k in s:
-            rtn[k] = __toUnicode(s[k])
+        for k,v in s.items():
+            rtn[k] = __toUnicode(v)
         return rtn
     if isinstance(s,list):
         rtn = []
-        for k in s:
-            rtn.append(__toUnicode(k))
+        for v in s:
+            rtn.append(__toUnicode(v))
         return rtn
     if isinstance(s,tuple):
         rtn = ()
-        for k in s:
-            rtn = rtn + (__toUnicode(k),)
+        for v in s:
+            rtn = rtn + (__toUnicode(v),)
         return rtn
     if isinstance(s,set):
         rtn = set()
-        for k in s:
-            rtn.add(__toUnicode(k))
+        for v in s:
+            rtn.add(__toUnicode(v))
         return rtn
     if not isinstance(s,str) and not isinstance(s,unicode):
         return s
@@ -243,7 +152,7 @@ def toUnicode(*args,**kwargs):
         else:
             return _args[0]
     return _args,_kwargs
-def __encoding(coding,s):
+def __encoding(encoding,s):
     u'''
     :将s编码为指定coding
     :参数
@@ -252,28 +161,28 @@ def __encoding(coding,s):
     '''
     if isinstance(s,dict):
         rtn = {}
-        for k in s:
-            rtn[k] = __encoding(coding,s[k])
+        for k,v in s.items():
+            rtn[k] = __encoding(encoding,v)
         return rtn
     if isinstance(s,list):
         rtn = []
-        for k in s:
-            rtn.append(__encoding(coding,k))
+        for v in s:
+            rtn.append(__encoding(encoding,v))
         return rtn
     if isinstance(s,tuple):
         rtn = ()
-        for k in s:
-            rtn = rtn + (__encoding(coding,k),)
+        for v in s:
+            rtn = rtn + (__encoding(encoding,v),)
         return rtn
     if isinstance(s,set):
         rtn = set()
-        for k in s:
-            rtn.add(__encoding(coding,k))
+        for v in s:
+            rtn.add(__encoding(encoding,v))
         return rtn
     if not isinstance(s,str) and not isinstance(s,unicode):
         return s
-    return __toUnicode(s).encode(coding,'ignore')
-def encoding(coding='',*args,**kwargs):
+    return __toUnicode(s).encode(encoding,'ignore')
+def encoding(encoding='',*args,**kwargs):
     u'''
     :coding:指定的字符编码
     :将args元组的各个字符型值全部转换为指定coding，将kwargs的各个字符型值转换为指定coding
@@ -288,11 +197,11 @@ def encoding(coding='',*args,**kwargs):
     :         args个数等于1，直接返回单值
     '''
     if len(args) > 0:
-        _args = __encoding(coding,args)
+        _args = __encoding(encoding,args)
     else:
         _args = ()
     if len(kwargs) > 0:
-        _kwargs = __encoding(coding,kwargs)
+        _kwargs = __encoding(encoding,kwargs)
     else:
         _kwargs = {}
     if len(_args) == 0 and len(_kwargs) == 0:
