@@ -29,14 +29,14 @@ __ChardetMapping__ = {
 __ChardetException__ = ('ISO-8859-7','ISO-8859-5','windows-1252')
 __ChardetThreshold__ = 0.99 #信任chardet字符编码判断的阀值
 
-def __isCoding(coding,s):
+def __isEncoding(encoding,s):
     u'''
     :判断是否可以按指定coding解码
     '''
     if not isinstance(s,str):
         return False
     try:
-        s.decode(coding)
+        s.decode(encoding)
     except:
         return False
     return True
@@ -44,7 +44,6 @@ def __detect(s,threshold):
     u'''
     :测试s的字符编码
     '''
-    global __UsingChardet__ , __ChardetMapping__ , __ChardetException__
     if not __UsingChardet__:
         return None
     if not isinstance(s,str):
@@ -62,9 +61,7 @@ def __detect(s,threshold):
         s.decode(coding)
     except:
         return None
-    try:
-        __ChardetException__.index(coding)
-    except:
+    if coding not in __ChardetException__: 
         return coding
     return None
 def __toUnicode(s):
@@ -72,27 +69,14 @@ def __toUnicode(s):
     :得到s的unicode编码
     :参数s:可以是字符串、tuple、set、list、dict
     '''
-    global __ChardetThreshold__ , __PriorityCoding__
     if isinstance(s,dict):
-        rtn = {}
-        for k,v in s.items():
-            rtn[k] = __toUnicode(v)
-        return rtn
+        return dict( ( k,__toUnicode(v) ) for k,v in s.items())
     if isinstance(s,list):
-        rtn = []
-        for v in s:
-            rtn.append(__toUnicode(v))
-        return rtn
+        return list(__toUnicode(v) for v in s)
     if isinstance(s,tuple):
-        rtn = ()
-        for v in s:
-            rtn = rtn + (__toUnicode(v),)
-        return rtn
+        return tuple(__toUnicode(v) for v in s)
     if isinstance(s,set):
-        rtn = set()
-        for v in s:
-            rtn.add(__toUnicode(v))
-        return rtn
+        return set(__toUnicode(v) for v in s)
     if not isinstance(s,str) and not isinstance(s,unicode):
         return s
     if isinstance(s,unicode):
@@ -105,9 +89,9 @@ def __toUnicode(s):
         else:
             return s
     detect = __detect(s,__ChardetThreshold__)
-    if detect is None:
+    if not detect:
         for c in __PriorityCoding__:
-            if __isCoding(c,s):
+            if __isEncoding(c,s):
                 return s.decode(c)
     else:
         try:
@@ -115,7 +99,7 @@ def __toUnicode(s):
         except:
             pass
     detect = __detect(s,0)
-    if detect is not None:
+    if detect:
         try:
             return s.decode(detect)
         except:
@@ -134,19 +118,19 @@ def toUnicode(*args,**kwargs):
     :        如args个数大于1，返回tuple
     :         args个数等于1，直接返回单值
     '''
-    if len(args) > 0:
+    if args:
         _args = __toUnicode(args)
     else:
         _args = ()
-    if len(kwargs) > 0:
+    if kwargs:
         _kwargs = __toUnicode(kwargs)
     else:
         _kwargs = {}
-    if len(_args) == 0 and len(_kwargs) == 0:
+    if not _args and not _kwargs:
         return None
-    if len(_args) == 0:
+    if not _args:
         return _kwargs
-    if len(_kwargs) == 0:
+    if not _kwargs:
         if len(_args) > 1:
             return _args
         else:
@@ -154,38 +138,26 @@ def toUnicode(*args,**kwargs):
     return _args,_kwargs
 def __encoding(encoding,s):
     u'''
-    :将s编码为指定coding
+    :将s编码为指定encoding
     :参数
-    :coding:指定字符编码
+    :encoding:指定字符编码
     :s:可以是字符串、tuple、set、list、dict
     '''
     if isinstance(s,dict):
-        rtn = {}
-        for k,v in s.items():
-            rtn[k] = __encoding(encoding,v)
-        return rtn
+        return dict( ( k,__encoding(encoding,v) ) for k,v in s.items())
     if isinstance(s,list):
-        rtn = []
-        for v in s:
-            rtn.append(__encoding(encoding,v))
-        return rtn
+        return list(__encoding(encoding,v) for v in s)
     if isinstance(s,tuple):
-        rtn = ()
-        for v in s:
-            rtn = rtn + (__encoding(encoding,v),)
-        return rtn
+        return tuple(__encoding(encoding,v) for v in s)
     if isinstance(s,set):
-        rtn = set()
-        for v in s:
-            rtn.add(__encoding(encoding,v))
-        return rtn
+        return set(__encoding(encoding,v) for v in s)
     if not isinstance(s,str) and not isinstance(s,unicode):
         return s
     return __toUnicode(s).encode(encoding,'ignore')
 def encoding(encoding='',*args,**kwargs):
     u'''
-    :coding:指定的字符编码
-    :将args元组的各个字符型值全部转换为指定coding，将kwargs的各个字符型值转换为指定coding
+    :encoding:指定的字符编码
+    :将args元组的各个字符型值全部转换为指定encoding，将kwargs的各个字符型值转换为指定encoding
     :如无kwargs则只返回args,类型为:tuple
     :如无args则只返回kwargs,类型为:dict
     :返回值:
@@ -196,19 +168,19 @@ def encoding(encoding='',*args,**kwargs):
     :        如args个数大于1，返回tuple
     :         args个数等于1，直接返回单值
     '''
-    if len(args) > 0:
+    if args:
         _args = __encoding(encoding,args)
     else:
         _args = ()
-    if len(kwargs) > 0:
+    if kwargs:
         _kwargs = __encoding(encoding,kwargs)
     else:
         _kwargs = {}
-    if len(_args) == 0 and len(_kwargs) == 0:
+    if not _args and not _kwargs:
         return None
-    if len(_args) == 0:
+    if not _args:
         return _kwargs
-    if len(_kwargs) == 0:
+    if not _kwargs:
         if len(_args) > 1:
             return _args
         else:
@@ -216,43 +188,16 @@ def encoding(encoding='',*args,**kwargs):
     return _args,_kwargs
 def toGb2312(*args,**kwargs):
     u'''
-    :将args元组的各个字符型值全部转换为gb2312，将kwargs的各个字符型值转换为gb2312
-    :如无kwargs则只返回args,类型为:tuple
-    :如无args则只返回kwargs,类型为:dict
-    :返回值:
-    :   一般情况返回tuple和dict
-    :   如无任何参数，返回None
-    :   如无args，则只返回dict
-    :   如无kwargs则根据args的个数决定如何返回：
-    :        如args个数大于1，返回tuple
-    :         args个数等于1，直接返回单值
+    :参见：encoding(encoding='',*args,**kwargs)
     '''
     return encoding('gb2312',*args,**kwargs)
 def toGbk(*args,**kwargs):
     u'''
-    :将args元组的各个字符型值全部转换为gbk，将kwargs的各个字符型值转换为gbk
-    :如无kwargs则只返回args,类型为:tuple
-    :如无args则只返回kwargs,类型为:dict
-    :返回值:
-    :   一般情况返回tuple和dict
-    :   如无任何参数，返回None
-    :   如无args，则只返回dict
-    :   如无kwargs则根据args的个数决定如何返回：
-    :        如args个数大于1，返回tuple
-    :         args个数等于1，直接返回单值
+    :参见：encoding(encoding='',*args,**kwargs)
     '''
     return encoding('gbk',*args,**kwargs)
 def toUtf8(*args,**kwargs):
     u'''
-    :将args元组的各个字符型值全部转换为utf8，将kwargs的各个字符型值转换为utf8
-    :如无kwargs则只返回args,类型为:tuple
-    :如无args则只返回kwargs,类型为:dict
-    :返回值:
-    :   一般情况返回tuple和dict
-    :   如无任何参数，返回None
-    :   如无args，则只返回dict
-    :   如无kwargs则根据args的个数决定如何返回：
-    :        如args个数大于1，返回tuple
-    :         args个数等于1，直接返回单值
+    :参见：encoding(encoding='',*args,**kwargs)
     '''
     return encoding('utf8',*args,**kwargs)
