@@ -120,7 +120,7 @@ def _tounicode(s):
     raise ValueError("Decoding failure")
 
 
-def toUnicode(*args, **kwargs):
+def tounicode(*args, **kwargs):
     u'''
     :将args元组的各个字符型值全部转换为unicode，将kwargs的各个字符型值转换为unicode
     :如无kwargs则只返回args,类型为:tuple
